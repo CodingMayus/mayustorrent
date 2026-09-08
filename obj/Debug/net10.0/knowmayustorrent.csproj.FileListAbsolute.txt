@@ -1,0 +1,15 @@
+D:\Past Projects\knowmayustorrent\obj\Debug\net10.0\knowmayustorrent.GeneratedMSBuildEditorConfig.editorconfig
+D:\Past Projects\knowmayustorrent\obj\Debug\net10.0\knowmayustorrent.AssemblyInfoInputs.cache
+D:\Past Projects\knowmayustorrent\obj\Debug\net10.0\knowmayustorrent.AssemblyInfo.cs
+D:\Past Projects\knowmayustorrent\obj\Debug\net10.0\knowmayustorrent.csproj.CoreCompileInputs.cache
+D:\Past Projects\knowmayustorrent\obj\Debug\net10.0\knowmayustorrent.sourcelink.json
+D:\Past Projects\knowmayustorrent\bin\Debug\net10.0\knowmayustorrent.exe
+D:\Past Projects\knowmayustorrent\bin\Debug\net10.0\knowmayustorrent.deps.json
+D:\Past Projects\knowmayustorrent\bin\Debug\net10.0\knowmayustorrent.runtimeconfig.json
+D:\Past Projects\knowmayustorrent\bin\Debug\net10.0\knowmayustorrent.dll
+D:\Past Projects\knowmayustorrent\bin\Debug\net10.0\knowmayustorrent.pdb
+D:\Past Projects\knowmayustorrent\obj\Debug\net10.0\knowmayustorrent.dll
+D:\Past Projects\knowmayustorrent\obj\Debug\net10.0\refint\knowmayustorrent.dll
+D:\Past Projects\knowmayustorrent\obj\Debug\net10.0\knowmayustorrent.pdb
+D:\Past Projects\knowmayustorrent\obj\Debug\net10.0\knowmayustorrent.genruntimeconfig.cache
+D:\Past Projects\knowmayustorrent\obj\Debug\net10.0\ref\knowmayustorrent.dll

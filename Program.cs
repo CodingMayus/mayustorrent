@@ -2,6 +2,8 @@
 using System.Text;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Reflection;
+using System.Collections.Immutable;
 
 namespace BitTorrent
 {
@@ -115,5 +117,96 @@ namespace BitTorrent
             return dict;
         }
 
+
+
+
+        public static byte[] Encode(object obj)
+        {
+            MemoryStream buffer = new MemoryStream();
+            EncodeNextObject(buffer, obj);
+            return buffer.ToArray();
+        }
+        public static void EncodeToFile(object obj, string path)
+        {
+            File.WriteAllBytes(path, Encode(obj));
+        }
+        // memoryStream is kind of like malloc 
+        private static void EncodeNextObject(MemoryStream buffer, object obj)
+        {
+            if (obj is byte[])
+                EncodeByteArray(buffer, (byte[])obj);
+
+            if (obj is string)
+                EncodeString(buffer, (string)obj);
+            if (obj is long)
+                EncodeNumber(buffer, (long)obj);
+            if (obj.GetType() == typeof(List<object>))
+            {
+                EncodeList(buffer, (List<object>)obj);
+            }
+            if (obj.GetType() == typeof(Dictionary<string, object>))
+            {
+                EncodeDictionary(buffer, (Dictionary<string, object>obj));
+            }
+            else
+                throw new Exception("unable to encode type " + obj.GetType());
+        }
+
+        private static void EncodeNumber(MemoryStream buffer, long input)
+        {
+            buffer.Append(NumberStart);
+            buffer.Append(Encoding.UTF8.GetBytes(Convert.ToString(input)));
+            buffer.Append(NumberEnd);
+        }
+        private static void EncodeByteArray(MemoryStream buffer, byte[] array)
+        {
+            buffer.Append(Encoding.UTF8.GetBytes(Convert.ToString(array.Length)));
+            buffer.Append(ByteArrayDivider);
+            buffer.Append(array);
+        }
+        private static void EncodeString(MemoryStream buffer, string input)
+        {
+            EncodeByteArray(buffer, Encoding.UTF8.GetBytes(input));
+        }
+        private static void EncodeList(MemoryStream buffer, List<object> input)
+        {
+            buffer.Append(ListStart);
+            foreach (var item in input)
+            {
+                EncodeNextObject(buffer, item);
+            }
+            buffer.Append(ListEnd);
+        }
+        private static void EncodeDictionary(MemoryStream buffer, Dictionary<string, object> dict)
+        {
+            buffer.Append(DictionaryStart);
+            // because dictionaries orders cannot be guaranteed, we convert to the list to sort then append to the memorystream!
+            var sortedKeys = dict.Keys.ToList().OrderBy(x => BitConverter.ToString(Encoding.UTF8.GetBytes(x)));
+            foreach (var key in sortedKeys)
+            {
+                EncodeString(buffer, key);
+                EncodeNextObject(buffer, dict[key]);
+            }
+
+            buffer.Append(DictionaryEnd);
+        }
+
+
+
     }
+}
+//extend the MemoryStream class to make writing byte arrays a little bit tidier
+public static class MemoryStreamExtensions
+{
+    public static void Append(this MemoryStream stream, byte value)
+    {
+        stream.Append(new[] { value });
+    }
+    public static void Append(this MemoryStream stream, byte[] values)
+    {
+        stream.Write(values, 0, values.Length);
+    }
+
+
+
 }
