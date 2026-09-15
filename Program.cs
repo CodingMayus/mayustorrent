@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Reflection;
 using System.Collections.Immutable;
 using System.Net;
+using System.Net;
 
 namespace BitTorrent
 {
@@ -147,6 +148,7 @@ namespace BitTorrent
             }
             if (obj.GetType() == typeof(Dictionary<string, object>))
             {
+                EncodeDictionary(buffer, (Dictionary<string, object>)obj);
                 EncodeDictionary(buffer, (Dictionary<string, object>)obj);
             }
             else
