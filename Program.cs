@@ -6,6 +6,9 @@ using System.Reflection;
 using System.Collections.Immutable;
 using System.Net;
 using System.Net;
+using System.Runtime.Intrinsics.Arm;
+using System.Security.Cryptography;
+using BitTorrent;
 
 namespace BitTorrent
 {
@@ -212,6 +215,7 @@ namespace BitTorrent
         public bool? IsPrivate {get;private set;}
         public List<FileItem>Files{get;private set;} = new List<FileItem>();
         public string FileDirectory {get {return (Files.Count > 1) ? Name + Path.DirectorySeparatorChar:"";}}
+        public string DownloadDirectory{get; private set;}
         public List<Tracker> Trackers {get;} = new List<Tracker>();
         public string Comment {get;set;}
         public string CreatedBy{get;set;}
@@ -272,6 +276,68 @@ namespace BitTorrent
         public string HexStringInfohash{get{return String.Join("", this.Infohash.Select(x=>x.ToString("x2")));}}
         public string UrlSafeStringInfohash {get { return Encoding.UTF8.GetString(WebUtility.UrlEncodeToBytes(this.Infohash, 0,20));}}
         
+   public event EventHandler<List<IPEndPoint>> PeerListUpdated;
+   private object[] fileWriteLocks;
+   private SHA1 sha1 = SHA1.Create();
+   public Torrent(string name, string location,List<FileItem>files, List<string>trackers, int pieceSize, byte[] pieceHashes = null,int blockSize =16384, bool? isPrivate=false)
+    {
+            Name=name;
+            DownloadDirectory = location;
+            Files= files;
+            fileWriteLocks = new object[Files.Count];
+            for(int i = 0; i < this.Files.Count; ++i)
+        {
+            fileWriteLocks[i]= new object();
+        }
+        if(trackers != null)
+        {
+         foreach(string url in trackers)
+            {
+                Tracker tracker = new Tracker(url);
+                Trackers.Add(tracker);
+                tracker.PeerListUpdated+=HandlePeerListUpdated;
+            }  
+        }
+        PieceSize = pieceSize;
+        BlockSize = blockSize;
+        IsPrivate = isPrivate;
+        int count = Convert.ToInt32(Math.Ceiling(TotalSize/Convert.ToDouble(PieceSize)));
+
+        PieceHashes = new byte [count][];
+        IsPieceVerified = new bool[count];
+        IsBlockAcquired = new bool[count][];
+
+        for(int i = 0; i < PieceCount; ++i)
+        {
+            IsBlockAcquired[i]=new bool[GetBlockCount(i)];
+        }
+        if(pieceHashes == null)
+        {
+            // since its a new torrent file we have to create hashes from the files
+            for(int i = 0; i < PieceCount; ++i)
+            {
+                PieceHashes[i]=GetHash(i);
+            }
+
+        }
+        else
+        {
+            for(int i = 0; i < PieceCount; ++i)
+            {
+                PieceHashes[i]=new byte[20];
+                Buffer.BlockCopy(pieceHashes, i*20, PieceHashes[i],0,20);
+            }
+        }
+        object info = TorrentInfoToBEncodingObject(this);
+        byte[] bytes=BEncoding.Encode(info);
+        Infohash = SHA1.Create().ComputeHash(bytes);
+    for(int i = 0; i < PieceCount; ++I)
+        {
+            Verify(i);
+        }
+    }
+   
+   
     }
 
 public class FileItem
